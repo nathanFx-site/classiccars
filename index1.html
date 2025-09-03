@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinnie Classic Autos | Classic & Vintage Cars</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        :root {
+            --red: #d42e2e;
+            --blue: #1e3c9d;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            color: var(--dark-gray);
+            line-height: 1.6;
+            background-color: var(--white);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--red) 0%, var(--blue) 50%, var(--white) 100%);
+            color: white;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header Styles */
+        header {
+            padding: 1rem 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .logo span {
+            color: var(--red);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: var(--red);
+        }
+        
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .auth-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .login-btn {
+            background-color: transparent;
+            border: 2px solid var(--red);
+            color: var(--red);
+        }
+        
+        .login-btn:hover {
+            background-color: var(--red);
+            color: white;
+        }
+        
+        .signup-btn {
+            background-color: var(--red);
+            color: white;
+            border: 2px solid var(--red);
+        }
+        
+        .signup-btn:hover {
+            background-color: #b02525;
+            border-color: #b02525;
+        }
+        
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+            background: url('https://images.unsplash.com/photo-1537005081207-04f90e3ba640?ixlib=rb-4.0.3&auto=format&fit=crop&w=1674&q=80') no-repeat center center/cover;
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(212, 46, 46, 0.7) 0%, rgba(30, 60, 157, 0.7) 50%, rgba(255, 255, 255, 0.7) 100%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.8rem;
+            background-color: var(--red);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background-color: #b02525;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid white;
+            margin-left: 1rem;
+        }
+        
+        .btn-outline:hover {
+            background-color: white;
+            color: var(--blue);
+        }
+        
+        /* Featured Vehicles */
+        .section-title {
+            text-align: center;
+            margin: 3rem 0;
+            font-size: 2.2rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--red), var(--blue));
+            margin: 0.5rem auto;
+        }
+        
+        .vehicles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .vehicle-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .vehicle-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .vehicle-image {
+            height: 200px;
+            background-color: #ddd;
+            background-position: center;
+            background-size: cover;
+        }
+        
+        .vehicle-details {
+            padding: 1.5rem;
+        }
+        
+        .vehicle-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .vehicle-price {
+            font-size: 1.5rem;
+            color: var(--red);
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .vehicle-specs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+            padding: 2rem;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .admin-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .admin-form {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Auth Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark-gray);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--red), var(--blue));
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column ul li a:hover {
+            color: var(--red);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #444;
+            font-size: 0.9rem;
+            color: #999;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 0.5rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .admin-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">Vinnie <span>Classic</span> Autos</div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link" data-section="home">Home</a></li>
+                    <li><a href="#" class="nav-link" data-section="inventory">Inventory</a></li>
+                    <li><a href="#" class="nav-link" data-section="about">About Us</a></li>
+                    <li><a href="#" class="nav-link" data-section="contact">Contact</a></li>
+                    <li><a href="#" class="nav-link" data-section="admin" id="admin-link" style="display: none;">Admin</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button class="auth-btn login-btn" id="login-btn">Login</button>
+                <button class="auth-btn signup-btn" id="signup-btn">Sign Up</button>
+                <button class="auth-btn login-btn" id="logout-btn" style="display: none;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Sections -->
+    <main>
+        <!-- Home Section -->
+        <section id="home-section">
+            <div class="hero">
+                <div class="container hero-content">
+                    <h1>Discover Timeless Classic Cars</h1>
+                    <p>Vinnie Classic Autos offers the finest selection of vintage and classic vehicles, expertly restored to their original glory.</p>
+                    <div>
+                        <a href="#" class="btn" id="browse-btn">Browse Inventory</a>
+                        <a href="#" class="btn btn-outline" id="learn-more-btn">Learn More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Vehicles -->
+            <div class="container">
+                <h2 class="section-title">Featured Vehicles</h2>
+                <div class="vehicles-grid" id="featured-vehicles">
+                    <!-- Vehicles will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section id="inventory-section" style="display: none; padding: 100px 0;">
+            <div class="container">
+                <h2 class="section-title">Our Inventory</h2>
+                <div class="vehicles-grid" id="inventory-vehicles">
+                    <!-- Inventory will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about-section" style="display: none; padding: 100px 0;">
+            <div class="container">
+                <h2 class="section-title">About Vinnie Classic Autos</h2>
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <p style="margin-bottom: 1.5rem;">Vinnie Classic Autos was founded in 1985 with a passion for preserving automotive history. What started as a small garage operation has grown into one of the most respected classic car dealerships in the country.</p>
+                    
+                    <p style="margin-bottom: 1.5rem;">Our team of expert mechanics and restoration specialists work tirelessly to bring these timeless machines back to their original glory. We take pride in every vehicle that passes through our doors, ensuring that each one meets our rigorous standards of quality and authenticity.</p>
+                    
+                    <p style="margin-bottom: 1.5rem;">Whether you're a seasoned collector or buying your first classic car, we're here to make your experience enjoyable and rewarding. Our knowledgeable staff will guide you through every step of the process, from selection to financing and beyond.</p>
+                    
+                    <h3 style="margin: 2rem 0 1rem; color: var(--red);">Our Mission</h3>
+                    <p>To connect enthusiasts with the classic cars of their dreams while preserving automotive heritage for future generations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact-section" style="display: none; padding: 100px 0;">
+            <div class="container">
+                <h2 class="section-title">Contact Us</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+                    <div>
+                        <h3 style="margin-bottom: 1.5rem; color: var(--red);">Get In Touch</h3>
+                        <form id="contact-form">
+                            <div class="form-group">
+                                <label for="name">Your Name</label>
+                                <input type="text" id="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="btn">Send Message</button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 1.5rem; color: var(--red);">Visit Our Showroom</h3>
+                        <div style="margin-bottom: 2rem;">
+                            <p><strong>Address:</strong> 123 Classic Avenue, Motor City, MC 12345</p>
+                            <p><strong>Phone:</strong> (555) 123-4567</p>
+                            <p><strong>Email:</strong> info@vinnieclassicautos.com</p>
+                        </div>
+                        
+                        <h3 style="margin-bottom: 1rem; color: var(--red);">Business Hours</h3>
+                        <div style="margin-bottom: 2rem;">
+                            <p>Monday-Friday: 9am - 7pm</p>
+                            <p>Saturday: 10am - 6pm</p>
+                            <p>Sunday: 11am - 4pm</p>
+                        </div>
+                        
+                        <div id="map" style="height: 200px; background-color: #ddd; display: flex; justify-content: center; align-items: center;">
+                            <!-- In a real implementation, you would embed a Google Map here -->
+                            <p>Map would be displayed here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Section -->
+        <section id="admin-section" style="display: none; padding: 100px 0;">
+            <div class="container">
+                <h2 class="section-title">Admin Panel</h2>
+                <div class="admin-panel" id="admin-panel">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--red);">Vehicle Management</h3>
+                    
+                    <div class="admin-controls">
+                        <div class="admin-form">
+                            <h4 style="margin-bottom: 1rem;">Add New Vehicle</h4>
+                            <form id="add-vehicle-form">
+                                <div class="form-group">
+                                    <label for="make">Make</label>
+                                    <input type="text" id="make" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="model">Model</label>
+                                    <input type="text" id="model" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="year">Year</label>
+                                    <input type="number" id="year" min="1900" max="2030" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="price">Price</label>
+                                    <input type="number" id="price" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="image">Image URL</label>
+                                    <input type="text" id="image" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mileage">Mileage</label>
+                                    <input type="number" id="mileage" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="transmission">Transmission</label>
+                                    <select id="transmission" required>
+                                        <option value="Manual">Manual</option>
+                                        <option value="Automatic">Automatic</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <textarea id="description" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="featured">Featured Vehicle</label>
+                                    <select id="featured" required>
+                                        <option value="no">No</option>
+                                        <option value="yes">Yes</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn">Add Vehicle</button>
+                            </form>
+                        </div>
+                        
+                        <div class="admin-form">
+                            <h4 style="margin-bottom: 1rem;">Current Inventory</h4>
+                            <div id="admin-vehicles-list">
+                                <!-- Vehicles will be listed here for management -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div class="modal" id="signup-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Account</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password (min 6 characters)</label>
+                    <input type="password" id="signup-password" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-admin">Admin Account (requires special code)</label>
+                    <input type="checkbox" id="signup-admin">
+                </div>
+                <div class="form-group" id="admin-code-container" style="display: none;">
+                    <label for="admin-code">Admin Code</label>
+                    <input type="password" id="admin-code">
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h3>Vinnie Classic Autos</h3>
+                    <p>Your premier destination for classic and vintage automobiles, offering quality vehicles and exceptional service since 1985.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" class="nav-link" data-section="home">Home</a></li>
+                        <li><a href="#" class="nav-link" data-section="inventory">Inventory</a></li>
+                        <li><a href="#" class="nav-link" data-section="about">About Us</a></li>
+                        <li><a href="#" class="nav-link" data-section="contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li>123 Classic Avenue</li>
+                        <li>Motor City, MC 12345</li>
+                        <li>Phone: (555) 123-4567</li>
+                        <li>Email: info@vinnieclassicautos.com</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Business Hours</h3>
+                    <ul>
+                        <li>Monday-Friday: 9am - 7pm</li>
+                        <li>Saturday: 10am - 6pm</li>
+                        <li>Sunday: 11am - 4pm</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Vinnie Classic Autos. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Firebase configuration - Replace with your actual config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // DOM Elements
+        const sections = {
+            home: document.getElementById('home-section'),
+            inventory: document.getElementById('inventory-section'),
+            about: document.getElementById('about-section'),
+            contact: document.getElementById('contact-section'),
+            admin: document.getElementById('admin-section')
+        };
+        
+        const navLinks = document.querySelectorAll('.nav-link');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const adminLink = document.getElementById('admin-link');
+        const loginModal = document.getElementById('login-modal');
+        const signupModal = document.getElementById('signup-modal');
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const browseBtn = document.getElementById('browse-btn');
+        const learnMoreBtn = document.getElementById('learn-more-btn');
+        const featuredVehiclesContainer = document.getElementById('featured-vehicles');
+        const inventoryVehiclesContainer = document.getElementById('inventory-vehicles');
+        const adminPanel = document.getElementById('admin-panel');
+        const addVehicleForm = document.getElementById('add-vehicle-form');
+        const adminVehiclesList = document.getElementById('admin-vehicles-list');
+        const contactForm = document.getElementById('contact-form');
+        const adminCheckbox = document.getElementById('signup-admin');
+        const adminCodeContainer = document.getElementById('admin-code-container');
+        
+        // Sample vehicles data (will be replaced with Firestore data)
+        const sampleVehicles = [
+            {
+                id: "1",
+                make: "Ford",
+                model: "Mustang",
+                year: 1965,
+                price: 64995,
+                image: "https://images.unsplash.com/photo-1542362567-b07e54358753?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                mileage: 25000,
+                transmission: "Manual",
+                description: "Beautifully restored 1965 Ford Mustang with original V8 engine.",
+                featured: true
+            },
+            {
+                id: "2",
+                make: "Chevrolet",
+                model: "Corvette",
+                year: 1957,
+                price: 125000,
+                image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                mileage: 52000,
+                transmission: "4-Speed",
+                description: "Rare 1957 Chevrolet Corvette in excellent condition.",
+                featured: true
+            },
+            {
+                id: "3",
+                make: "Chevrolet",
+                model: "Camaro",
+                year: 1969,
+                price: 79500,
+                image: "https://images.unsplash.com/photo-1567899378494-47b22b2b56c9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+                mileage: 38000,
+                transmission: "Automatic",
+                description: "1969 Chevrolet Camaro with matching numbers and original paint.",
+                featured: true
+            }
+        ];
+        
+        // Current user state
+        let currentUser = null;
+        
+        // Event Listeners
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.getAttribute('data-section');
+                showSection(section);
+            });
+        });
+        
+        loginBtn.addEventListener('click', () => {
+            loginModal.style.display = 'flex';
+        });
+        
+        signupBtn.addEventListener('click', () => {
+            signupModal.style.display = 'flex';
+        });
+        
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+        });
+        
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+                signupModal.style.display = 'none';
+            });
+        });
+        
+        browseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('inventory');
+        });
+        
+        learnMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('about');
+        });
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    loginModal.style.display = 'none';
+                    loginForm.reset();
+                })
+                .catch((error) => {
+                    alert('Error signing in: ' + error.message);
+                });
+        });
+        
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const isAdmin = document.getElementById('signup-admin').checked;
+            const adminCode = document.getElementById('admin-code').value;
+            
+            // In a real app, you would verify the admin code against a stored value
+            if (isAdmin && adminCode !== "admin123") {
+                alert("Invalid admin code");
+                return;
+            }
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Add user data to Firestore
+                    return db.collection('users').doc(userCredential.user.uid).set({
+                        name: name,
+                        email: email,
+                        isAdmin: isAdmin,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    signupModal.style.display = 'none';
+                    signupForm.reset();
+                    alert('Account created successfully!');
+                })
+                .catch((error) => {
+                    alert('Error creating account: ' + error.message);
+                });
+        });
+        
+        addVehicleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUser || !currentUser.isAdmin) {
+                alert('You do not have permission to add vehicles');
+                return;
+            }
+            
+            const make = document.getElementById('make').value;
+            const model = document.getElementById('model').value;
+            const year = parseInt(document.getElementById('year').value);
+            const price = parseFloat(document.getElementById('price').value);
+            const image = document.getElementById('image').value;
+            const mileage = parseInt(document.getElementById('mileage').value);
+            const transmission = document.getElementById('transmission').value;
+            const description = document.getElementById('description').value;
+            const featured = document.getElementById('featured').value === 'yes';
+            
+            // Add vehicle to Firestore
+            db.collection('vehicles').add({
+                make,
+                model,
+                year,
+                price,
+                image,
+                mileage,
+                transmission,
+                description,
+                featured,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                addVehicleForm.reset();
+                alert('Vehicle added successfully!');
+                loadVehicles();
+            })
+            .catch((error) => {
+                alert('Error adding vehicle: ' + error.message);
+            });
+        });
+        
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            
+            // Save contact form submission to Firestore
+            db.collection('contacts').add({
+                name,
+                email,
+                message,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                contactForm.reset();
+                alert('Thank you for your message! We will get back to you soon.');
+            })
+            .catch((error) => {
+                alert('Error sending message: ' + error.message);
+            });
+        });
+        
+        adminCheckbox.addEventListener('change', () => {
+            adminCodeContainer.style.display = adminCheckbox.checked ? 'block' : 'none';
+        });
+        
+        // Functions
+        function showSection(sectionName) {
+            // Hide all sections
+            Object.values(sections).forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show the requested section
+            if (sections[sectionName]) {
+                sections[sectionName].style.display = 'block';
+                
+                // Load section-specific data
+                if (sectionName === 'inventory') {
+                    loadVehicles();
+                } else if (sectionName === 'admin' && currentUser && currentUser.isAdmin) {
+                    loadAdminVehicles();
+                }
+            }
+        }
+        
+        function loadVehicles() {
+            // Clear existing content
+            featuredVehiclesContainer.innerHTML = '';
+            inventoryVehiclesContainer.innerHTML = '';
+            
+            // In a real app, you would fetch from Firestore
+            // For now, we'll use the sample data
+            sampleVehicles.forEach(vehicle => {
+                const vehicleCard = createVehicleCard(vehicle);
+                
+                if (vehicle.featured) {
+                    featuredVehiclesContainer.appendChild(vehicleCard);
+                }
+                
+                inventoryVehiclesContainer.appendChild(vehicleCard.cloneNode(true));
+            });
+            
+            // Uncomment to use Firestore instead of sample data:
+            /*
+            db.collection('vehicles').get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const vehicle = { id: doc.id, ...doc.data() };
+                        const vehicleCard = createVehicleCard(vehicle);
+                        
+                        if (vehicle.featured) {
+                            featuredVehiclesContainer.appendChild(vehicleCard);
+                        }
+                        
+                        inventoryVehiclesContainer.appendChild(vehicleCard.cloneNode(true));
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error loading vehicles: ', error);
+                });
+            */
+        }
+        
+        function createVehicleCard(vehicle) {
+            const card = document.createElement('div');
+            card.className = 'vehicle-card';
+            card.innerHTML = `
+                <div class="vehicle-image" style="background-image: url('${vehicle.image}')"></div>
+                <div class="vehicle-details">
+                    <h3 class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</h3>
+                    <p class="vehicle-price">$${vehicle.price.toLocaleString()}</p>
+                    <div class="vehicle-specs">
+                        <span>${vehicle.mileage.toLocaleString()} miles</span>
+                        <span>${vehicle.transmission}</span>
+                    </div>
+                    <p>${vehicle.description}</p>
+                    <button class="btn" style="margin-top: 1rem;">View Details</button>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function loadAdminVehicles() {
+            adminVehiclesList.innerHTML = '';
+            
+            // In a real app, you would fetch from Firestore
+            // For now, we'll use the sample data
+            sampleVehicles.forEach(vehicle => {
+                const vehicleItem = document.createElement('div');
+                vehicleItem.className = 'vehicle-item';
+                vehicleItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #ddd;">
+                        <div>
+                            <strong>${vehicle.year} ${vehicle.make} ${vehicle.model}</strong>
+                            <p>$${vehicle.price.toLocaleString()} - ${vehicle.mileage.toLocaleString()} miles</p>
+                        </div>
+                        <button class="btn" style="background-color: #ff4d4d;" onclick="deleteVehicle('${vehicle.id}')">Delete</button>
+                    </div>
+                `;
+                
+                adminVehiclesList.appendChild(vehicleItem);
+            });
+            
+            // Uncomment to use Firestore instead of sample data:
+            /*
+            db.collection('vehicles').get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const vehicle = { id: doc.id, ...doc.data() };
+                        const vehicleItem = document.createElement('div');
+                        vehicleItem.className = 'vehicle-item';
+                        vehicleItem.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #ddd;">
+                                <div>
+                                    <strong>${vehicle.year} ${vehicle.make} ${vehicle.model}</strong>
+                                    <p>$${vehicle.price.toLocaleString()} - ${vehicle.mileage.toLocaleString()} miles</p>
+                                </div>
+                                <button class="btn" style="background-color: #ff4d4d;" onclick="deleteVehicle('${doc.id}')">Delete</button>
+                            </div>
+                        `;
+                        
+                        adminVehiclesList.appendChild(vehicleItem);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error loading admin vehicles: ', error);
+                });
+            */
+        }
+        
+        function deleteVehicle(vehicleId) {
+            if (!confirm('Are you sure you want to delete this vehicle?')) return;
+            
+            // In a real app, you would delete from Firestore
+            alert(`Vehicle ${vehicleId} would be deleted in a real app`);
+            
+            // Uncomment to use Firestore instead:
+            /*
+            db.collection('vehicles').doc(vehicleId).delete()
+                .then(() => {
+                    alert('Vehicle deleted successfully');
+                    loadAdminVehicles();
+                    loadVehicles();
+                })
+                .catch((error) => {
+                    alert('Error deleting vehicle: ' + error.message);
+                });
+            */
+        }
+        
+        // Auth state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                loginBtn.style.display = 'none';
+                signupBtn.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                
+                // Check if user is admin
+                db.collection('users').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const userData = doc.data();
+                            currentUser.isAdmin = userData.isAdmin || false;
+                            
+                            if (currentUser.isAdmin) {
+                                adminLink.style.display = 'block';
+                                adminPanel.style.display = 'block';
+                            } else {
+                                adminLink.style.display = 'none';
+                                adminPanel.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error getting user data: ', error);
+                    });
+            } else {
+                // User is signed out
+                currentUser = null;
+                loginBtn.style.display = 'block';
+                signupBtn.style.display = 'block';
+                logoutBtn.style.display = 'none';
+                adminLink.style.display = 'none';
+                adminPanel.style.display = 'none';
+                
+                // If on admin section, redirect to home
+                if (window.location.hash === '#admin') {
+                    showSection('home');
+                }
+            }
+        });
+        
+        // Initialize the page
+        showSection('home');
+        loadVehicles();
+        
+        // Make deleteVehicle function available globally for the onclick handlers
+        window.deleteVehicle = deleteVehicle;
+    </script>
+</body>
+</html>
