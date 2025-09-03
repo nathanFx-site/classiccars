@@ -1465,7 +1465,7 @@
             if (vehicle) {
                 // Update detail page with vehicle information
                 detailTitle.textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-                detailPrice.textContent = `$${vehicle.price.toLocaleString()}`;
+                detailPrice.textContent = `kes${vehicle.price.toLocaleString()}`;
                 detailYear.textContent = vehicle.year;
                 detailMake.textContent = vehicle.make;
                 detailModel.textContent = vehicle.model;
@@ -1619,7 +1619,7 @@
                 <div class="vehicle-image" style="background-image: url('${vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : 'https://placehold.co/400x300/cccccc/333333/png?text=No+Image'}')"></div>
                 <div class="vehicle-details">
                     <h3 class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</h3>
-                    <p class="vehicle-price">$${vehicle.price.toLocaleString()}</p>
+                    <p class="vehicle-price">kes${vehicle.price.toLocaleString()}</p>
                     <div class="vehicle-specs">
                         <span>${vehicle.mileage.toLocaleString()} miles</span>
                         <span>${vehicle.transmission}</span>
@@ -1722,7 +1722,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #ddd;">
                         <div>
                             <strong>${vehicle.year} ${vehicle.make} ${vehicle.model}</strong>
-                            <p>$${vehicle.price.toLocaleString()} - ${vehicle.mileage.toLocaleString()} miles</p>
+                            <p>kes${vehicle.price.toLocaleString()} - ${vehicle.mileage.toLocaleString()} miles</p>
                         </div>
                         <button class="btn" style="background-color: #ff4d4d;" onclick="deleteVehicle('${vehicle.id}')">Delete</button>
                     </div>
